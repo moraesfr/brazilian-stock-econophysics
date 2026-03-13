@@ -1,0 +1,32 @@
+# R files
+.Rhistory
+.RData
+.Rproj.user
+*.Rproj
+
+# LaTeX files
+*.aux
+*.log
+*.out
+*.pdf
+*.tex
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Plots and outputs
+*.png
+*.jpg
+*.pdf
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary files
+*~
+*.tmp

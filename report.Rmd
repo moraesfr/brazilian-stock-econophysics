@@ -1,0 +1,212 @@
+---
+title: "Brazilian Stock Market Analysis: Econophysics and Tsallis Entropy"
+author: "Generated Report"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(quantmod)
+library(zoo)
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+```
+
+```{r load-data}
+# Source the analysis script
+source("analyze_brazilian_stocks.R")
+# Run the analysis
+results <- analyze_brazilian_stocks()
+cor_matrix <- results$cor_matrix
+entropy_plot <- results$entropy_plot
+crisis_events <- results$crisis_events
+boom_events <- results$boom_events
+crisis_df <- results$crisis_df
+crisis_plot <- results$crisis_plot
+ibov_returns <- results$ibov_returns
+ibov_close <- results$ibov_close
+stock_closes <- results$stock_closes
+stocks <- results$stocks
+```
+
+# Introduction
+
+This report analyzes the Brazilian stock market using principles of econophysics and Tsallis entropy. It studies correlations between major companies and identifies crisis events in the IBOVESPA index.
+
+# Correlation Analysis
+
+The correlation matrix between selected Brazilian stocks is shown below:
+
+```{r cor-matrix}
+print(cor_matrix)
+```
+
+## Tsallis Entropy of Correlations
+
+```{r entropy-plot}
+entropy_plot
+```
+
+# Crisis Events
+
+## Summary
+
+- Number of crisis days detected: `r sum(crisis_events, na.rm = TRUE)`
+- Percentage of crisis days: `r round(sum(crisis_events, na.rm = TRUE) / length(crisis_events) * 100, 2)`%
+
+## List of Crisis Dates
+
+The specific dates of crisis events are:
+
+```{r crisis-dates}
+crisis_dates <- index(ibov_returns)[crisis_events]
+crisis_dates <- crisis_dates[!is.na(crisis_dates)]
+print(as.Date(crisis_dates))
+```
+
+# Boom Events
+
+## Summary
+
+- Number of boom days detected: `r sum(boom_events, na.rm = TRUE)`
+- Percentage of boom days: `r round(sum(boom_events, na.rm = TRUE) / length(boom_events) * 100, 2)`%
+
+## List of Boom Dates
+
+The specific dates of boom events are:
+
+```{r boom-dates}
+boom_dates <- index(ibov_returns)[boom_events]
+boom_dates <- boom_dates[!is.na(boom_dates)]
+print(as.Date(boom_dates))
+```
+
+## Crisis Event Plots
+
+For the 5 most severe crisis events (by magnitude of daily return), we show the IBOVESPA index behavior 30 days before and after the event.
+
+```{r top-crises, fig.width=12, fig.height=20}
+# Get crisis returns
+crisis_returns <- ibov_returns[crisis_events]
+# Sort by most negative
+top_crisis_indices <- order(crisis_returns)[1:5]
+top_crisis_dates <- crisis_dates[top_crisis_indices]
+top_crisis_dates <- top_crisis_dates[!is.na(top_crisis_dates)]
+
+# Function to plot around crisis
+plot_crisis <- function(crisis_date, days_before = 30, days_after = 30) {
+  start_date <- as.Date(crisis_date) - days_before
+  end_date <- as.Date(crisis_date) + days_after
+  subset_close <- window(ibov_close, start = start_date, end = end_date)
+  if (length(subset_close) == 0) return(NULL)
+  df <- data.frame(Date = index(subset_close), Close = as.numeric(subset_close))
+  ggplot(df, aes(x = Date, y = Close)) +
+    geom_line() +
+    geom_vline(xintercept = as.numeric(crisis_date), color = "red", linetype = "dashed") +
+    labs(title = paste("IBOVESPA around", as.Date(crisis_date)),
+         x = "Date", y = "Index Level") +
+    theme_minimal()
+}
+
+# Generate plots
+plots <- lapply(top_crisis_dates, plot_crisis)
+# Arrange in grid
+do.call(grid.arrange, c(plots, ncol = 1))
+```
+
+# Overall Crisis Plot
+
+```{r overall-crisis-plot}
+crisis_plot
+```
+
+# Boom Event Plots
+
+For the 5 most significant boom events (by magnitude of daily return), we show the IBOVESPA index behavior 30 days before and after the event.
+
+```{r top-booms, fig.width=12, fig.height=20}
+# Get boom returns
+boom_returns <- ibov_returns[boom_events]
+# Sort by most positive
+top_boom_indices <- order(boom_returns, decreasing = TRUE)[1:5]
+top_boom_dates <- boom_dates[top_boom_indices]
+top_boom_dates <- top_boom_dates[!is.na(top_boom_dates)]
+
+# Function to plot around boom
+plot_boom <- function(boom_date, days_before = 30, days_after = 30) {
+  start_date <- as.Date(boom_date) - days_before
+  end_date <- as.Date(boom_date) + days_after
+  subset_close <- window(ibov_close, start = start_date, end = end_date)
+  if (length(subset_close) == 0) return(NULL)
+  df <- data.frame(Date = index(subset_close), Close = as.numeric(subset_close))
+  ggplot(df, aes(x = Date, y = Close)) +
+    geom_line() +
+    geom_vline(xintercept = as.numeric(boom_date), color = "green", linetype = "dashed") +
+    labs(title = paste("IBOVESPA around Boom on", as.Date(boom_date)),
+         x = "Date", y = "Index Level") +
+    theme_minimal()
+}
+
+# Generate plots
+plots <- lapply(top_boom_dates, plot_boom)
+# Arrange in grid
+do.call(grid.arrange, c(plots, ncol = 1))
+```
+
+# Individual Stock Behavior During Crises
+
+For each of the top 5 crisis events, the following plots show the adjusted closing prices of all selected Brazilian stocks 30 days before and after the crisis. Each facet represents a different stock, allowing comparison of how individual companies were affected.
+
+```{r stock-crises, fig.width=14, fig.height=10}
+for (crisis_date in top_crisis_dates) {
+  df_list <- lapply(stocks, function(stock) {
+    if (is.null(stock_closes[[stock]])) return(NULL)
+    start_date <- as.Date(crisis_date) - 30
+    end_date <- as.Date(crisis_date) + 30
+    subset_close <- window(stock_closes[[stock]], start = start_date, end = end_date)
+    if (length(subset_close) == 0) return(NULL)
+    data.frame(Date = index(subset_close), Price = as.numeric(subset_close), Stock = stock)
+  })
+  df_list <- df_list[!sapply(df_list, is.null)]
+  if (length(df_list) == 0) next
+  df <- do.call(rbind, df_list)
+  p <- ggplot(df, aes(x = Date, y = Price)) +
+    geom_line() +
+    geom_vline(xintercept = as.numeric(crisis_date), color = "red", linetype = "dashed") +
+    facet_wrap(~ Stock, scales = "free_y") +
+    labs(title = paste("Stock Prices around Crisis on", as.Date(crisis_date)),
+         x = "Date", y = "Adjusted Close Price") +
+    theme_minimal()
+  print(p)
+}
+```
+
+# Individual Stock Behavior During Booms
+
+For each of the top 5 boom events, the following plots show the adjusted closing prices of all selected Brazilian stocks 30 days before and after the boom. Each facet represents a different stock, allowing comparison of how individual companies performed during positive market events.
+
+```{r stock-booms, fig.width=14, fig.height=10}
+for (boom_date in top_boom_dates) {
+  df_list <- lapply(stocks, function(stock) {
+    if (is.null(stock_closes[[stock]])) return(NULL)
+    start_date <- as.Date(boom_date) - 30
+    end_date <- as.Date(boom_date) + 30
+    subset_close <- window(stock_closes[[stock]], start = start_date, end = end_date)
+    if (length(subset_close) == 0) return(NULL)
+    data.frame(Date = index(subset_close), Price = as.numeric(subset_close), Stock = stock)
+  })
+  df_list <- df_list[!sapply(df_list, is.null)]
+  if (length(df_list) == 0) next
+  df <- do.call(rbind, df_list)
+  p <- ggplot(df, aes(x = Date, y = Price)) +
+    geom_line() +
+    geom_vline(xintercept = as.numeric(boom_date), color = "green", linetype = "dashed") +
+    facet_wrap(~ Stock, scales = "free_y") +
+    labs(title = paste("Stock Prices around Boom on", as.Date(boom_date)),
+         x = "Date", y = "Adjusted Close Price") +
+    theme_minimal()
+  print(p)
+}
+```

@@ -1,6 +1,6 @@
 # Brazilian Stock Market Analysis: Econophysics and Tsallis Entropy
 
-This project applies econophysics principles to analyze the Brazilian stock market, using Tsallis entropy to study correlations, detect crises, and inform trading strategies.
+This project applies econophysics principles to analyze the Brazilian stock market, using Tsallis entropy to study correlations, detect crises, and inform trading strategies. I have left the pandemic time out of analysis.
 
 ## Project Structure
 

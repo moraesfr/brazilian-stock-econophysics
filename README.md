@@ -1,35 +1,20 @@
 # Brazilian Stock Market Analysis: Econophysics and Tsallis Entropy
 
-This project applies principles of econophysics to analyze the Brazilian stock market, focusing on correlations between major companies and the identification of crisis and boom events using Tsallis entropy.
+This project applies econophysics principles to analyze the Brazilian stock market, using Tsallis entropy to study correlations, detect crises, and inform trading strategies.
 
-## Features
+## Project Structure
 
-### Main Analysis (`analyze_brazilian_stocks.R`)
-- Analyzes historical data (2006-2019) for major Brazilian stocks
-- Computes correlations and Tsallis entropy
-- Identifies crisis events (sharp drops) and boom events (sharp gains)
-- Generates comprehensive PDF report
+- **[Analyze_brazilian_stocks/](Analyze_brazilian_stocks/)**: Core analysis scripts for historical data (2006-2019), correlation computation, Tsallis entropy, and crisis/boom detection.
+- **[Non_extensivity_test/](Non_extensivity_test/)**: Tests for non-extensive behavior, including q-Gaussian vs. normal distribution fits and crisis vs. normal period comparisons.
+- **[Straddle_analysis/](Straddle_analysis/)**: Options strategy analysis using straddle positions based on econophysics alerts.
 
-### Recent Analysis (`recent_analysis.R`)
-- Monitors the last 30 days of market data
-- Provides real-time assessment of market stability
-- Predictive analysis for upcoming volatility and events
-- Risk scoring for volatility-based investments
+## Key Features
 
-### PDF Report (`report.pdf`)
-- Complete analysis report with visualizations
-- Crisis and boom event details
-- Individual stock behavior analysis
-- Correlation matrices and entropy plots
-
-## Methodology
-
-The analysis uses:
-- **Tsallis Entropy**: Generalized entropy measure for non-extensive systems
-- **Correlation Analysis**: Study of inter-stock relationships
-- **Event Detection**: Identification of extreme market movements
-- **Volatility Monitoring**: Rolling volatility analysis
-- **Predictive Indicators**: Early warning signals for market events
+- **Tsallis Entropy Analysis**: Measures non-extensivity in stock correlations.
+- **Crisis Detection**: Identifies extreme market events using volatility thresholds.
+- **Distribution Testing**: Compares q-Gaussian and normal fits for returns.
+- **Options Strategies**: Straddle recommendations for volatility events.
+- **PDF Reports**: Automated generation of analysis reports.
 
 ## Stocks Analyzed
 - PETR4.SA (Petrobras)
@@ -44,10 +29,34 @@ The analysis uses:
 
 ### R Packages
 ```r
-install.packages(c("quantmod", "zoo", "ggplot2", "dplyr", "rmarkdown", "gridExtra", "tinytex"))
+install.packages(c("quantmod", "zoo", "ggplot2", "dplyr", "rmarkdown", "gridExtra", "tinytex", "fitdistrplus", "MASS"))
 ```
 
-### System Requirements
+### Data Source
+- Yahoo Finance for historical stock data
+- IBOVESPA (^BVSP) as market benchmark
+
+## Usage
+
+1. Clone the repository
+2. Install required R packages
+3. Run scripts in each subfolder as needed
+4. View generated plots and reports
+
+## Methodology
+
+- **Non-Extensive Statistics**: Tsallis entropy for systems with long-range correlations
+- **Event Detection**: Threshold-based identification of crises (>5% drop or high volatility)
+- **Correlation Dynamics**: Analysis of changing inter-stock relationships during stress
+- **Options Strategy**: Straddle positions to profit from predicted volatility
+
+## Contributing
+
+This is an open-source project for educational and research purposes. Contributions welcome!
+
+## License
+
+MIT License
 - R (version 4.0+)
 - LaTeX (for PDF generation)
 - Internet connection (for data fetching)
